@@ -1,0 +1,3 @@
+function startup { led.orange }; 
+function on.rfid.enter {led.red;  command.scout(1, "on.rfid.enter", 2, arg(1), arg(2));};
+function on.rfid.leave {led.orange; command.scout(1, "on.rfid.leave", 2, arg(1), arg(2));};
