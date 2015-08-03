@@ -22,6 +22,7 @@ protected:
     boolean      connected;
 
     byte         rx_buffer[Z21Packet::MAX_PACKET_SIZE + 10]; // in case
+    int          packet_size;
     byte*        read_to;
     int          left_to_read;
 };

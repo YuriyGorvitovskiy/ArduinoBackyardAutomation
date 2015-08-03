@@ -7,14 +7,22 @@ long Z21Client::start() {
     UDP.sendZ21(Z21.getStatus());
     UDP.sendZ21(Z21.getVersion());
     UDP.sendZ21(Z21.setBroadcastFlags(Z21_Broadcast::STATUS_LOCO_TURNOUT));
-    return 10;
+    return 2000; //Z21/GS doesn't respond first 2 seconds to the Info request
 }
 
 long Z21Client::progress() {
+    Serial.print("Progress: #L: ");
     int count = 0 ;
-    Loco** locos = Loco::getAllLocos(count);
+    Loco** locos = Loco::getAll(count);
+    Serial.print(count);
     while(count > 0)
         UDP.sendZ21(Z21.getLocoInfo(locos[--count]->getDCCAddress()));
+    
+    Accessory** accessories = Accessory::getAll(count);
+    Serial.print(", #A: ");
+    Serial.println(count);
+    while(count > 0)
+        UDP.sendZ21(Z21.getAccessoryInfo(accessories[--count]->getDCCAddress()));
     
     return 20000L; // Once 20 seconds
 }

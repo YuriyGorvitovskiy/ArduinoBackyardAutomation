@@ -5,7 +5,14 @@
 
 class Loco {
     public:
-        Loco(uint16_t dccAddress, uint16_t idScout);
+        Loco(uint16_t dccAddress, uint16_t idScout) : 
+            dccAddress(dccAddress), 
+            idScout(idScout),
+            forward(false),
+            speed128(0),
+            functions(0) {};
+
+        void init();
         
         void update(boolean forward, uint8_t speed128, uint32_t functions);
         
@@ -20,7 +27,7 @@ class Loco {
         static Loco* findByDCCAddress(uint16_t dccAddress);
         static Loco* findByIDScout(uint16_t idScout);
 
-        static Loco** getAllLocos(int& count);
+        static Loco** getAll(int& count);
         
 
     protected:

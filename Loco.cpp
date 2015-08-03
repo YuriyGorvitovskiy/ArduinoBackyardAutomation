@@ -5,13 +5,10 @@ const int  MAX_LOCO_COUNT = 10;
 Loco* ALL_LOCOS[MAX_LOCO_COUNT];
 int   ALL_LOCOS_COUNT = 0;
 
-Loco::Loco(uint16_t dccAddress, uint16_t idScout) : 
-    dccAddress(dccAddress), 
-    idScout(idScout) {
-        
+void Loco::init() {
     if (ALL_LOCOS_COUNT < MAX_LOCO_COUNT)        
         ALL_LOCOS[ALL_LOCOS_COUNT++] = this;
-};
+}
         
 void Loco::update(boolean fwd, uint8_t speed, uint32_t func) {
     this->forward = fwd;
@@ -36,7 +33,7 @@ Loco* Loco::findByIDScout(uint16_t idScout) {
     return NULL;
 }
 
-Loco** Loco::getAllLocos(int& count) {
+Loco** Loco::getAll(int& count) {
     count = ALL_LOCOS_COUNT;
     return ALL_LOCOS;
 }

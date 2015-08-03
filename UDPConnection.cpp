@@ -21,6 +21,7 @@ void UDPConnection::setup() {
     connected == false;
     server == NULL;
     read_to = rx_buffer;
+    packet_size = 0;
     left_to_read = 0;
 
     pinoccio::WifiBackpack *bp = pinoccio::WifiModule::instance.bp();
@@ -28,7 +29,7 @@ void UDPConnection::setup() {
         Serial.print("No Backpack\n");   
         return;
     }
-
+    
     server = new GSUdpServer(bp->gs);
 }
 
@@ -61,7 +62,8 @@ void UDPConnection::loop() {
 
         if (left_to_read <= 0) 
             return;
-            
+
+        packet_size = left_to_read;
         read_to = rx_buffer;
     }
     
@@ -69,8 +71,17 @@ void UDPConnection::loop() {
     left_to_read -= read;
     read_to += read;
 
-    if (left_to_read <= 0)
-        Z21.processPacket(rx_buffer);
+    if (left_to_read > 0)
+        return;
+
+    // Could be multiple packets
+    byte* z21packet = rx_buffer;
+    while(packet_size >= Z21Packet::MIN_PACKET_SIZE) {
+        Z21.processPacket(z21packet);
+        word len = Z21Packet::getLength(z21packet);
+        packet_size -= len;
+        z21packet += len;
+    }
 }
 
 boolean UDPConnection::isConnected() {

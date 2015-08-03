@@ -4,6 +4,7 @@
 #include <Action.h>
 #include <Z21.h>
 #include "Loco.h"
+#include "Accessory.h"
 
 class Z21Client : public Action {
 public:    
