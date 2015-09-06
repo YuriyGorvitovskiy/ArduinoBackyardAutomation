@@ -14,6 +14,7 @@
 #include <lwm.h>
 #include <js0n.h>
 #include <backpacks/wifi/WifiModule.h>
+#include <util/memdebug.h>
 
 #include <Z21.h>
 
@@ -36,58 +37,86 @@ Accessory   STATION_AUTO(6);
 Accessory   STAGE_STOP(7);
 Accessory   STAGE_AUTO(8);
 
-Z21Speed    MOGUL_STOP(MOGUL, 0);
-Z21Speed    MOGUL_GO  (MOGUL, 64);
+Z21Speed    MOGUL_STOP          (MOGUL, 0);
+Z21Speed    MOGUL_SLOW          (MOGUL, 24);
+Z21Speed    MOGUL_SLOW_DOWN     (MOGUL, 48);
+Z21Speed    MOGUL_GO            (MOGUL, 64);
 
-Z21Function MOGUL_OPEN_DOORS (MOGUL, Z21_Function::F6, true);
-Z21Function MOGUL_CLOSE_DOORS(MOGUL, Z21_Function::F6, false);
+Z21Function MOGUL_OPEN_DOORS    (MOGUL, Z21_Function::F6, true);
+Z21Function MOGUL_CLOSE_DOORS   (MOGUL, Z21_Function::F6, false);
 
-Z21Function MOGUL_BELL       (MOGUL, Z21_Function::F1, 2000L);
+Z21Function MOGUL_BELL_ON       (MOGUL, Z21_Function::F1, true);
+Z21Function MOGUL_BELL_OFF      (MOGUL, Z21_Function::F1, false);
 
-Z21Function MOGUL_APPROACH   (MOGUL, Z21_Function::F3, 2000L);
+Z21Function MOGUL_APPROACH_ON   (MOGUL, Z21_Function::F3, true);
+Z21Function MOGUL_APPROACH_OFF  (MOGUL, Z21_Function::F3, false);
 
-Z21Function MOGUL_SQUEAL_ON  (MOGUL, Z21_Function::F7, true);
-Z21Function MOGUL_SQUEAL_OFF (MOGUL, Z21_Function::F7, false);
+Z21Function MOGUL_SQUEAL_ON     (MOGUL, Z21_Function::F7, true);
+Z21Function MOGUL_SQUEAL_OFF    (MOGUL, Z21_Function::F7, false);
 
-Z21Function MOGUL_SOUND_ON   (MOGUL, Z21_Function::F20, false);
-Z21Function MOGUL_SOUND_OFF  (MOGUL, Z21_Function::F20, true);
+Z21Function MOGUL_SOUND_ON      (MOGUL, Z21_Function::F20, false);
+Z21Function MOGUL_SOUND_OFF     (MOGUL, Z21_Function::F20, true);
 
-Z21Speed    TAURUS_STOP(TAURUS, 0);
-Z21Speed    TAURUS_GO  (TAURUS, 64);
+Z21Speed    TAURUS_STOP         (TAURUS, 0);
+Z21Speed    TAURUS_SLOW         (TAURUS, 24);
+Z21Speed    TAURUS_SLOW_DOWN    (TAURUS, 48);
+Z21Speed    TAURUS_GO           (TAURUS, 64);
 
-Z21Function TAURUS_OPEN_DOORS (TAURUS, Z21_Function::F6, true);
-Z21Function TAURUS_CLOSE_DOORS(TAURUS, Z21_Function::F6, false);
+Z21Function TAURUS_OPEN_DOORS   (TAURUS, Z21_Function::F6, true);
+Z21Function TAURUS_CLOSE_DOORS  (TAURUS, Z21_Function::F6, false);
 
-Z21Function TAURUS_WISTLE     (TAURUS, Z21_Function::F11, 1000L);
+Z21Function TAURUS_WISTLE_ON    (TAURUS, Z21_Function::F11, true);
+Z21Function TAURUS_WISTLE_OFF   (TAURUS, Z21_Function::F11, false);
 
-Z21Function TAURUS_APPROACH   (TAURUS, Z21_Function::F3, 2000L);
+Z21Function TAURUS_APPROACH_ON  (TAURUS, Z21_Function::F3, true);
+Z21Function TAURUS_APPROACH_OFF (TAURUS, Z21_Function::F3, false);
 
-Z21Function TAURUS_SQUEAL_ON  (TAURUS, Z21_Function::F7, true);
-Z21Function TAURUS_SQUEAL_OFF (TAURUS, Z21_Function::F7, false);
+Z21Function TAURUS_SQUEAL_ON    (TAURUS, Z21_Function::F7, true);
+Z21Function TAURUS_SQUEAL_OFF   (TAURUS, Z21_Function::F7, false);
 
-Z21Function TAURUS_SOUND_ON   (TAURUS, Z21_Function::F20, false);
-Z21Function TAURUS_SOUND_OFF  (TAURUS, Z21_Function::F20, true);
+Z21Function TAURUS_SOUND_ON     (TAURUS, Z21_Function::F20, false);
+Z21Function TAURUS_SOUND_OFF    (TAURUS, Z21_Function::F20, true);
 
-Z21Turnout  TURNOUT_RIGHT_IN (4, 0);
-Z21Turnout  TURNOUT_RIGHT_OUT(4, 1);
+Z21Turnout  TURNOUT_RIGHT_IN    (TURNOUT_RIGHT, 0);
+Z21Turnout  TURNOUT_RIGHT_OUT   (TURNOUT_RIGHT, 1);
 
-Z21Turnout  TURNOUT_LEFT_IN  (5, 0);
-Z21Turnout  TURNOUT_LEFT_OUT (5, 1);
+Z21Turnout  TURNOUT_LEFT_IN     (TURNOUT_LEFT, 0);
+Z21Turnout  TURNOUT_LEFT_OUT    (TURNOUT_LEFT, 1);
 
 Delay        STATION_WAIT     (20000L);
-Delay        STATION_ARRIVAL  ( 2000L);
-Delay        STATION_DEPARTURE( 3000L);
+Delay        STATION_ARRIVAL  ( 2000L- Z21_ACTION_CHECK_DELAY);
+Delay        STATION_DEPARTURE( 3000L- Z21_ACTION_CHECK_DELAY);
 
-Delay        HORN_REPEAT      (  500L);
+Delay        SWITCH_DELAY     (  500L - Z21_ACTION_CHECK_DELAY);
 
-Delay        SWITCH_DELAY     (  500L);
+Delay        MOGUL_BELL_DELAY       ( 2000L - Z21_ACTION_CHECK_DELAY);
+Delay        MOGUL_APPROACH_DELAY   ( 2000L - Z21_ACTION_CHECK_DELAY);
+
+Delay        TAURUS_WISTLE_DELAY    ( 1000L - Z21_ACTION_CHECK_DELAY);
+Delay        TAURUS_APPROACH_DELAY  ( 2000L - Z21_ACTION_CHECK_DELAY);
+
+Action* MOGUL_APPROACH_LIST[] = { 
+        &MOGUL_APPROACH_ON,
+        &MOGUL_APPROACH_DELAY,
+        &MOGUL_APPROACH_OFF,
+        NULL
+};
+
+Action* TAURUS_APPROACH_LIST[] = { 
+        &TAURUS_APPROACH_ON,
+        &TAURUS_APPROACH_DELAY,
+        &TAURUS_APPROACH_OFF,
+        NULL
+};
 
 Action* MOGUL_STATION_LIST[] = { 
         &MOGUL_STOP,
         &STATION_ARRIVAL,
         &MOGUL_OPEN_DOORS,
         &STATION_WAIT,
-        &MOGUL_BELL,
+        &MOGUL_BELL_ON,
+        &MOGUL_BELL_DELAY,
+        &MOGUL_BELL_OFF,
         &MOGUL_CLOSE_DOORS,
         &STATION_DEPARTURE,
         &MOGUL_GO,
@@ -99,26 +128,12 @@ Action* TAURUS_STATION_LIST[] = {
         &STATION_ARRIVAL,
         &TAURUS_OPEN_DOORS,
         &STATION_WAIT,
-        &TAURUS_WISTLE,
+        &TAURUS_WISTLE_ON,
+        &TAURUS_WISTLE_DELAY,
+        &TAURUS_WISTLE_OFF,
         &TAURUS_CLOSE_DOORS,
         &STATION_DEPARTURE,
         &TAURUS_GO,
-        NULL,
-};
-
-
-Action* TAURUS_MOGUL_LIST[] = { 
-        &TAURUS_STOP,
-        &STATION_ARRIVAL,
-        &MOGUL_SOUND_ON,
-        &STATION_ARRIVAL,
-        &TAURUS_SOUND_OFF,
-        &STATION_ARRIVAL,
-        &TURNOUT_RIGHT_OUT,
-        &SWITCH_DELAY,
-        &TURNOUT_LEFT_OUT,
-        &STATION_DEPARTURE,
-        &MOGUL_GO,
         NULL,
 };
 
@@ -137,9 +152,27 @@ Action* MOGUL_TAURUS_LIST[] = {
         NULL
 };
 
+Action* TAURUS_MOGUL_LIST[] = { 
+        &TAURUS_STOP,
+        &STATION_ARRIVAL,
+        &MOGUL_SOUND_ON,
+        &STATION_ARRIVAL,
+        &TAURUS_SOUND_OFF,
+        &STATION_ARRIVAL,
+        &TURNOUT_RIGHT_OUT,
+        &SWITCH_DELAY,
+        &TURNOUT_LEFT_OUT,
+        &STATION_DEPARTURE,
+        &MOGUL_GO,
+        NULL,
+};
+
+
+ActionSequence MOGUL_APPROACH;
 ActionSequence MOGUL_STATION;
 ActionSequence MOGUL_TAURUS;
 
+ActionSequence TAURUS_APPROACH;
 ActionSequence TAURUS_STATION;
 ActionSequence TAURUS_MOGUL;
 
@@ -180,6 +213,8 @@ void setup() {
     STAGE_STOP.init();
     STAGE_AUTO.init();
 
+    MOGUL_APPROACH.init(MOGUL_APPROACH_LIST);
+    TAURUS_APPROACH.init(TAURUS_APPROACH_LIST);
     MOGUL_STATION.init(MOGUL_STATION_LIST);
     TAURUS_STATION.init(TAURUS_STATION_LIST);
     MOGUL_TAURUS.init(MOGUL_TAURUS_LIST);
@@ -268,15 +303,33 @@ void onRFID(boolean enter, uint16_t scout, uint16_t mfg, uint32_t rfid) {
     for (int i = 0; i < SENSOR_COUNT; ++i) {
         if (s == SENSORS[i]) {
             SENSORS[i].onEvent(enter, scout);
-            Serial.print("RI:");
+            Serial.print("RI: ");
             Serial.print(mfg, DEC);
             Serial.print("-");
             Serial.print(rfid, DEC);
             Serial.print("->");
             Serial.println(scout, DEC);
+            /*
+            Serial.print("used/free/large: ");
+            Serial.print(getMemoryUsed(), DEC);
+            Serial.print("/");
+            Serial.print(getFreeMemory(), DEC);
+            Serial.print("/");
+            Serial.println(getLargestAvailableMemoryBlock(), DEC);
+            Serial.print("#NWK-Frmaes: ");
+            Serial.println(countNwkFrames(), DEC);
+            */
             break;        
         }
     }
+}
+int countNwkFrames() {
+    NwkFrame_t *frame = NULL;
+    int count = 0;
+    while (NULL != (frame = nwkFrameNext(frame))) {
+        ++count;
+    }
+    return count;
 }
 
 void onRFID_1(bool enter, word scout) {
@@ -293,14 +346,14 @@ void onRFID_1(bool enter, word scout) {
         if (STAGE_AUTO.getPos() == Z21_Accessory_Pos::P1 && !TAURUS.isForward())
             Processor.start(&MOGUL_TAURUS);
         else
-            UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 0));
+            Processor.start(&MOGUL_STOP);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
             
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 48));
+        Processor.start(&TAURUS_SLOW_DOWN);
         return;
     }
 }               
@@ -315,14 +368,14 @@ void onRFID_2_5(bool enter, word scout) {
         if (!MOGUL.isForward())
             return;
         
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 24));
+        Processor.start(&MOGUL_SLOW);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
             
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 24));
+        Processor.start(&TAURUS_SLOW);
         return;
     }
 }
@@ -337,15 +390,15 @@ void onRFID_3(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-        
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 48));
+
+        Processor.start(&MOGUL_SLOW_DOWN);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 0));
+
+        Processor.start(&TAURUS_STOP);
         return;
     }
 }
@@ -359,15 +412,15 @@ void onRFID_4(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-        
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 0));
+
+        Processor.start(&MOGUL_STOP);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 48));
+
+        Processor.start(&TAURUS_SLOW_DOWN);
         return;
     }
 }
@@ -383,7 +436,7 @@ void onRFID_6(bool enter, word scout) {
         if (!MOGUL.isForward())
             return;
 
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 48));
+        Processor.start(&MOGUL_SLOW_DOWN);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
@@ -393,7 +446,7 @@ void onRFID_6(bool enter, word scout) {
         if (STAGE_AUTO.getPos() == Z21_Accessory_Pos::P1 && MOGUL.isForward())  
             Processor.start(&TAURUS_MOGUL);
         else
-            UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 0));
+            Processor.start(&TAURUS_STOP);
         return;
     }
 }
@@ -412,7 +465,7 @@ void onRFID_7(bool enter, word scout) {
         if (TAURUS.isForward())
             return;
             
-        Processor.start(&TAURUS_SQUEAL_OFF);
+        Processor.start(&TAURUS_GO);
         return;
     }
 }
@@ -463,7 +516,7 @@ void onRFID_10(bool enter, word scout) {
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 48));
+        Processor.start(&TAURUS_SLOW_DOWN);            
         return;
     }
 }
@@ -478,14 +531,14 @@ void onRFID_11(bool enter, word scout) {
         if (!MOGUL.isForward())
             return;
         
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 24));
+        Processor.start(&MOGUL_SLOW);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
-        UDP.sendZ21(Z21.setLocoDrive(TAURUS.getDCCAddress(), TAURUS.isForward(), Z21_Speed_Range::STEPS_128, 24));
+
+        Processor.start(&TAURUS_SLOW);
         return;
     }    
 }
@@ -499,7 +552,8 @@ void onRFID_12(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-        UDP.sendZ21(Z21.setLocoDrive(MOGUL.getDCCAddress(), MOGUL.isForward(), Z21_Speed_Range::STEPS_128, 48));
+
+        Processor.start(&MOGUL_SLOW_DOWN);
         return;
     }
     
@@ -548,8 +602,8 @@ void onRFID_15(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-            
-        Processor.start(&MOGUL_SQUEAL_OFF);
+
+        Processor.start(&MOGUL_GO);
         return;
     }
     if (scout == TAURUS.getIDScout()) {

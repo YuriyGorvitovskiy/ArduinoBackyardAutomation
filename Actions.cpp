@@ -3,6 +3,7 @@
 #include "Actions.h"
 #include "UDPConnection.h"
 
+
 long Z21Client::start() {
     UDP.sendZ21(Z21.getStatus());
     UDP.sendZ21(Z21.getVersion());
@@ -30,27 +31,29 @@ long Z21Client::progress() {
 void Z21Client::cancel() {
 }
 
-long Z21Function::start() {
-    UDP.sendZ21(Z21.setLocoFunction(loco.getDCCAddress(), function, on ? Z21_Function_Action::ON : Z21_Function_Action::OFF));
-    return interval;
-}
-
-long Z21Function::progress() {
-    UDP.sendZ21(Z21.setLocoFunction(loco.getDCCAddress(), function, Z21_Function_Action::OFF));
-    return ACTION_COMPLETE;
-}
-
-
-
-long Z21Speed::start() {
+void Z21Speed::execute() {
     UDP.sendZ21(Z21.setLocoDrive(loco.getDCCAddress(), loco.isForward(), Z21_Speed_Range::STEPS_128, speed128));
-    return ACTION_COMPLETE;
 }
 
-
-long Z21Turnout::start() {
-    UDP.sendZ21(Z21.setAccessory(address, pos, true, true));
-    return ACTION_COMPLETE;
+boolean Z21Speed::check() {
+    return (loco.getSpeed128() == speed128);
 }
+
+void Z21Function::execute() {
+    UDP.sendZ21(Z21.setLocoFunction(loco.getDCCAddress(), function, on ? Z21_Function_Action::ON : Z21_Function_Action::OFF));
+}
+
+boolean Z21Function::check() {
+    return (loco.isFunctionON(function) == on);
+}
+
+void Z21Turnout::execute() {
+    UDP.sendZ21(Z21.setAccessory(accessory.getDCCAddress(), pos, true, true));
+}
+
+boolean Z21Turnout::check() {
+    return (accessory.getPos() == pos);
+}
+
 
 

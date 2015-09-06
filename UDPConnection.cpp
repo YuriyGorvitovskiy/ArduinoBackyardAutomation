@@ -91,18 +91,24 @@ boolean UDPConnection::isConnected() {
 void UDPConnection::sendZ21(Z21Packet& packet) {
     if (!connected)
         return;
-    
-    server->beginPacket(Z21_IP, Z21_PORT);
-    server->write(packet.data, packet.length);
-    server->endPacket();
+
+//bypass realloc/free code
+//change library to expose GSUdpServer::gs, GSUdpServer::cid
+    int res = server->gs.writeData(server->cid, Z21_IP, Z21_PORT, packet.data, packet.length);
+//    server->beginPacket(Z21_IP, Z21_PORT);
+//    server->write(packet.data, packet.length);
+//    server->endPacket();
 }
 
 void UDPConnection::sendMac(Z21Packet& packet) {
     if (!connected)
         return;
 
-    server->beginPacket(MAC_BOOK_IP, MAC_BOOK_PORT);
-    server->write(packet.data, packet.length);
-    server->endPacket();
+//bypass realloc/free code
+//change library to expose GSUdpServer::gs, GSUdpServer::cid
+    int res = server->gs.writeData(server->cid, MAC_BOOK_IP, MAC_BOOK_PORT, packet.data, packet.length);
+//    server->beginPacket(MAC_BOOK_IP, MAC_BOOK_PORT);
+//    server->write(packet.data, packet.length);
+//    server->endPacket();
 }
 
