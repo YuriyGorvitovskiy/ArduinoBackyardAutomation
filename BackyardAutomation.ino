@@ -28,6 +28,12 @@
 #include "Actions.h"
 #include "UDPConnection.h"
 
+//!!! MESH-KEY = 14630d84c1e68bbe
+//!!! MESH-REPORT for LEADER
+// {"type":"mesh","scoutid":1,"troopid":2,"routes":0,"channel":20,"rate":"250 kb/s","power":"3.5 dBm","at":163723}
+//!!! MESH-REPORT for STEAM:
+// {"type":"mesh","scoutid":2,"troopid":2,"routes":0,"channel":20,"rate":"250 kb/s","power":"3.5 dBm","at":60083}
+
 Loco        MOGUL(12, 2);
 Loco        TAURUS(18, 3);
 
@@ -77,8 +83,8 @@ Z21Function TAURUS_SQUEAL_OFF   (TAURUS, Z21_Function::F7, false);
 Z21Function TAURUS_SOUND_ON     (TAURUS, Z21_Function::F20, false);
 Z21Function TAURUS_SOUND_OFF    (TAURUS, Z21_Function::F20, true);
 
-Z21Turnout  TURNOUT_RIGHT_IN    (TURNOUT_RIGHT, 0);
-Z21Turnout  TURNOUT_RIGHT_OUT   (TURNOUT_RIGHT, 1);
+Z21Turnout  TURNOUT_RIGHT_IN    (TURNOUT_RIGHT, 1);
+Z21Turnout  TURNOUT_RIGHT_OUT   (TURNOUT_RIGHT, 0);
 
 Z21Turnout  TURNOUT_LEFT_IN     (TURNOUT_LEFT, 0);
 Z21Turnout  TURNOUT_LEFT_OUT    (TURNOUT_LEFT, 1);
