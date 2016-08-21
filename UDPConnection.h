@@ -17,7 +17,10 @@ public:
     void sendZ21(Z21Packet& packet);
     void sendMac(Z21Packet& packet);
 
+    void onWriteError();
+
 protected:
+
     GSUdpServer* server;
     boolean      connected;
 

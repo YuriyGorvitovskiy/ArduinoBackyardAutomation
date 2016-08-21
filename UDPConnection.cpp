@@ -29,8 +29,9 @@ void UDPConnection::setup() {
         Serial.print("No Backpack\n");   
         return;
     }
-    
+    Led.blinkBlue(200, true);
     server = new GSUdpServer(bp->gs);
+    
 }
 
 void UDPConnection::loop() {
@@ -42,8 +43,10 @@ void UDPConnection::loop() {
         if (!connected)
             return;
 
+        server->gs.setAutoConnectServer(SERVER_PORT, GSModule::GS_UDP);
         Led.blinkBlue();
         Serial.println("UDP Connected.");   
+            
         if (onConnect != NULL)            
             onConnect();    
     }
@@ -94,10 +97,8 @@ void UDPConnection::sendZ21(Z21Packet& packet) {
 
 //bypass realloc/free code
 //change library to expose GSUdpServer::gs, GSUdpServer::cid
-    int res = server->gs.writeData(server->cid, Z21_IP, Z21_PORT, packet.data, packet.length);
-//    server->beginPacket(Z21_IP, Z21_PORT);
-//    server->write(packet.data, packet.length);
-//    server->endPacket();
+    if (!server->gs.writeData(server->cid, Z21_IP, Z21_PORT, packet.data, packet.length))
+        onWriteError();
 }
 
 void UDPConnection::sendMac(Z21Packet& packet) {
@@ -106,9 +107,30 @@ void UDPConnection::sendMac(Z21Packet& packet) {
 
 //bypass realloc/free code
 //change library to expose GSUdpServer::gs, GSUdpServer::cid
-    int res = server->gs.writeData(server->cid, MAC_BOOK_IP, MAC_BOOK_PORT, packet.data, packet.length);
-//    server->beginPacket(MAC_BOOK_IP, MAC_BOOK_PORT);
-//    server->write(packet.data, packet.length);
-//    server->endPacket();
+    if (!server->gs.writeData(server->cid, MAC_BOOK_IP, MAC_BOOK_PORT, packet.data, packet.length))
+        onWriteError();
+}
+
+void UDPConnection::onWriteError() {
+    Serial.print("UDP Error: "); 
+    if (server->gs.unrecoverableError) {
+        Serial.println("unrecoverable"); 
+    } else {
+        Serial.println("recoverable"); 
+    }
+    if (!server->gs.isAssociated()) {
+        Serial.println("WIFI is not associated"); 
+    } 
+    if (!server->gs.getConnectionInfo(server->cid).connected) {
+        Serial.print("WIFI server is not connected: "); 
+        Serial.println(server->cid); 
+    }
+    if (server->gs.getConnectionInfo(server->cid).error) {
+        Serial.print("WIFI server connection has error: "); 
+        Serial.println(server->cid); 
+    }
+    Led.blinkBlue(200, true);
+    server->stop();
+    connected = false;
 }
 
