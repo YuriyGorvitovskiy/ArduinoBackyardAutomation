@@ -11,7 +11,7 @@ const int          SERVER_PORT = 21105;
 const IPAddress    Z21_IP(192, 168, 0, 111);
 const int          Z21_PORT = 21105;
 
-const IPAddress    MAC_BOOK_IP(192, 168, 0, 102);
+const IPAddress    MAC_BOOK_IP(192, 168, 0, 98);
 const int          MAC_BOOK_PORT = 21105;
 
 UDPConnection UDP;
