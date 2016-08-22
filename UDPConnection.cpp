@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Scout.h>
 #include <GS.h>
+
 #include <backpacks/wifi/WifiModule.h>
 
 #include "UDPConnection.h"
@@ -24,12 +25,15 @@ void UDPConnection::setup() {
     packet_size = 0;
     left_to_read = 0;
 
-    pinoccio::WifiBackpack *bp = pinoccio::WifiModule::instance.bp();
+    bp = pinoccio::WifiModule::instance.bp();
     if (bp == NULL) {
-        Serial.print("No Backpack\n");   
+        Serial.println("No Backpack.");   
         return;
     }
-    Led.blinkBlue(200, true);
+    bp->disableHqConnection = true;
+    bp->gs.setAutoConnectServer(SERVER_PORT, GSModule::GS_UDP);
+    bp->gs.setNcm(true, true, false, GSModule::GS_NCM_STATION);        
+
     server = new GSUdpServer(bp->gs);
     
 }
@@ -39,13 +43,14 @@ void UDPConnection::loop() {
         return;
 
     if (!connected) {
+        Led.blue();
         connected = server->begin(SERVER_PORT);
         if (!connected)
             return;
 
-        server->gs.setAutoConnectServer(SERVER_PORT, GSModule::GS_UDP);
-        Led.blinkBlue();
-        Serial.println("UDP Connected.");   
+        Led.blinkGreen();
+        Serial.print("UDP Connected. CID: ");   
+        Serial.println(server->cid);   
             
         if (onConnect != NULL)            
             onConnect();    
@@ -77,6 +82,7 @@ void UDPConnection::loop() {
     if (left_to_read > 0)
         return;
 
+    Led.blinkGreen();   
     // Could be multiple packets
     byte* z21packet = rx_buffer;
     while(packet_size >= Z21Packet::MIN_PACKET_SIZE) {
@@ -112,24 +118,41 @@ void UDPConnection::sendMac(Z21Packet& packet) {
 }
 
 void UDPConnection::onWriteError() {
-    Serial.print("UDP Error: "); 
+    Led.blue();
     if (server->gs.unrecoverableError) {
-        Serial.println("unrecoverable"); 
-    } else {
-        Serial.println("recoverable"); 
+        Serial.print("UDP Unrecoverable error. CID: "); 
+        Serial.println(server->cid); 
+        return;
     }
+    if (GSCore::MAX_CID == server->cid) {
+        Serial.print("UDP Unrecoverable error. CID reach the limit: "); 
+        Serial.println(server->cid); 
+        server->gs.unrecoverableError = true;
+        return;
+    }
+
     if (!server->gs.isAssociated()) {
-        Serial.println("WIFI is not associated"); 
-    } 
+        Serial.println("WIFI is not associated.");
+        Serial.println("WIFI re-associated.");
+        server->stop(); 
+        connected = false;
+        bp->associate();
+        Led.blue();
+        return;
+    }
+        
     if (!server->gs.getConnectionInfo(server->cid).connected) {
-        Serial.print("WIFI server is not connected: "); 
+        Serial.print("UDP server is not connected: "); 
+    } else if (server->gs.getConnectionInfo(server->cid).error) {
+        Serial.print("UDP server connection has error: "); 
         Serial.println(server->cid); 
+    } else {
+        Serial.print("UDP communication error: "); 
     }
-    if (server->gs.getConnectionInfo(server->cid).error) {
-        Serial.print("WIFI server connection has error: "); 
-        Serial.println(server->cid); 
-    }
-    Led.blinkBlue(200, true);
+    Serial.println(server->cid); 
+
+    Serial.println("UDP server reconnecting."); 
+    Led.blue();
     server->stop();
     connected = false;
 }

@@ -3,6 +3,7 @@
 
 #include <GS.h>
 #include <Z21.h>
+#include <backpacks/wifi/WifiBackpack.h>
 
 class UDPConnection {
 public: 
@@ -21,8 +22,9 @@ public:
 
 protected:
 
-    GSUdpServer* server;
-    boolean      connected;
+    pinoccio::WifiBackpack* bp;
+    GSUdpServer*            server;
+    boolean                 connected;
 
     byte         rx_buffer[Z21Packet::MAX_PACKET_SIZE + 10]; // in case
     int          packet_size;
