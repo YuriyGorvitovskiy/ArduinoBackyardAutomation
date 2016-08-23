@@ -26,7 +26,7 @@
 #include "Loco.h"
 #include "Sensor.h"
 #include "Actions.h"
-#include "UDPConnection.h"
+#include "UDPServer.h"
 
 //!!! MESH-KEY = 14630d84c1e68bbe
 //!!! MESH-REPORT for LEADER
@@ -101,21 +101,21 @@ Delay        MOGUL_APPROACH_DELAY   ( 2000L - Z21_ACTION_CHECK_DELAY);
 Delay        TAURUS_WISTLE_DELAY    ( 1000L - Z21_ACTION_CHECK_DELAY);
 Delay        TAURUS_APPROACH_DELAY  ( 2000L - Z21_ACTION_CHECK_DELAY);
 
-Action* MOGUL_APPROACH_LIST[] = { 
+Action* MOGUL_APPROACH_LIST[] = {
         &MOGUL_APPROACH_ON,
         &MOGUL_APPROACH_DELAY,
         &MOGUL_APPROACH_OFF,
         NULL
 };
 
-Action* TAURUS_APPROACH_LIST[] = { 
+Action* TAURUS_APPROACH_LIST[] = {
         &TAURUS_APPROACH_ON,
         &TAURUS_APPROACH_DELAY,
         &TAURUS_APPROACH_OFF,
         NULL
 };
 
-Action* MOGUL_STATION_LIST[] = { 
+Action* MOGUL_STATION_LIST[] = {
         &MOGUL_STOP,
         &STATION_ARRIVAL,
         &MOGUL_OPEN_DOORS,
@@ -129,7 +129,7 @@ Action* MOGUL_STATION_LIST[] = {
         NULL,
 };
 
-Action* TAURUS_STATION_LIST[] = { 
+Action* TAURUS_STATION_LIST[] = {
         &TAURUS_STOP,
         &STATION_ARRIVAL,
         &TAURUS_OPEN_DOORS,
@@ -143,7 +143,7 @@ Action* TAURUS_STATION_LIST[] = {
         NULL,
 };
 
-Action* MOGUL_TAURUS_LIST[] = { 
+Action* MOGUL_TAURUS_LIST[] = {
         &MOGUL_STOP,
         &STATION_ARRIVAL,
         &TAURUS_SOUND_ON,
@@ -158,7 +158,7 @@ Action* MOGUL_TAURUS_LIST[] = {
         NULL
 };
 
-Action* TAURUS_MOGUL_LIST[] = { 
+Action* TAURUS_MOGUL_LIST[] = {
         &TAURUS_STOP,
         &STATION_ARRIVAL,
         &MOGUL_SOUND_ON,
@@ -227,9 +227,9 @@ void setup() {
     TAURUS_MOGUL.init(TAURUS_MOGUL_LIST);
 
     UDP.onConnect = onConnect;
-    Z21.onLocoInfo = onLocoInfo; 
-    Z21.onAccessoryInfo = onAccessoryInfo;        
-    
+    Z21.onLocoInfo = onLocoInfo;
+    Z21.onAccessoryInfo = onAccessoryInfo;
+
     addBitlashFunction("rfid.report", (bitlash_function)RFIDreport);
     UDP.setup();
 }
@@ -242,14 +242,14 @@ void loop() {
 
 numvar RFIDreport(void) {
     boolean action = getarg(1);
-    unumvar scout  = getarg(2); 
+    unumvar scout  = getarg(2);
     unumvar mfid   = getarg(3);
     unumvar rfid   = getarg(4);
-    
+
     if (!UDP.isConnected())
         return 0;
-    
-    onRFID(action, scout, mfid, rfid);        
+
+    onRFID(action, scout, mfid, rfid);
 
     Z21.packet.setHeader(10, (action ? 0x3701 : 0x3702)); // enter or leave with YG code
     Z21.packet.setByte(4, scout);
@@ -257,7 +257,7 @@ numvar RFIDreport(void) {
     Z21.packet.setLEuint32(6, rfid);
     UDP.sendMac(Z21.packet);
 
-/*    
+/*
     String report = "Scout " + String(scout);
     if (action == 1)
         report += " enter ";
@@ -274,9 +274,9 @@ numvar RFIDreport(void) {
     report += "-";
     report += String(rfid, HEX);
     report += "\n";
-    
+
     Shell.print(report.c_str());
-*/    
+*/
     return 0;
 }
 
@@ -325,7 +325,7 @@ void onRFID(boolean enter, uint16_t scout, uint16_t mfg, uint32_t rfid) {
             Serial.print("#NWK-Frmaes: ");
             Serial.println(countNwkFrames(), DEC);
             */
-            break;        
+            break;
         }
     }
 }
@@ -341,7 +341,7 @@ int countNwkFrames() {
 void onRFID_1(bool enter, word scout) {
     if (!enter)
         return;
-        
+
     if (STAGE_STOP.getPos() != Z21_Accessory_Pos::P1)
         return;
 
@@ -358,11 +358,11 @@ void onRFID_1(bool enter, word scout) {
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
+
         Processor.start(&TAURUS_SLOW_DOWN);
         return;
     }
-}               
+}
 void onRFID_2_5(bool enter, word scout) {
     if (!enter)
         return;
@@ -373,14 +373,14 @@ void onRFID_2_5(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-        
+
         Processor.start(&MOGUL_SLOW);
         return;
     }
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
+
         Processor.start(&TAURUS_SLOW);
         return;
     }
@@ -449,7 +449,7 @@ void onRFID_6(bool enter, word scout) {
         if (TAURUS.isForward())
             return;
 
-        if (STAGE_AUTO.getPos() == Z21_Accessory_Pos::P1 && MOGUL.isForward())  
+        if (STAGE_AUTO.getPos() == Z21_Accessory_Pos::P1 && MOGUL.isForward())
             Processor.start(&TAURUS_MOGUL);
         else
             Processor.start(&TAURUS_STOP);
@@ -470,7 +470,7 @@ void onRFID_7(bool enter, word scout) {
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
+
         Processor.start(&TAURUS_GO);
         return;
     }
@@ -479,7 +479,7 @@ void onRFID_7(bool enter, word scout) {
 void onRFID_8(bool enter, word scout) {
     if (!enter)
         return;
-    
+
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
@@ -489,7 +489,7 @@ void onRFID_8(bool enter, word scout) {
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-            
+
         Processor.start(&TAURUS_SQUEAL_OFF);
         return;
     }
@@ -498,7 +498,7 @@ void onRFID_8(bool enter, word scout) {
 void onRFID_9(bool enter, word scout) {
     if (!enter)
         return;
-    
+
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
@@ -522,7 +522,7 @@ void onRFID_10(bool enter, word scout) {
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-        Processor.start(&TAURUS_SLOW_DOWN);            
+        Processor.start(&TAURUS_SLOW_DOWN);
         return;
     }
 }
@@ -536,7 +536,7 @@ void onRFID_11(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-        
+
         Processor.start(&MOGUL_SLOW);
         return;
     }
@@ -546,7 +546,7 @@ void onRFID_11(bool enter, word scout) {
 
         Processor.start(&TAURUS_SLOW);
         return;
-    }    
+    }
 }
 void onRFID_12(bool enter, word scout) {
     if (!enter)
@@ -562,11 +562,11 @@ void onRFID_12(bool enter, word scout) {
         Processor.start(&MOGUL_SLOW_DOWN);
         return;
     }
-    
+
     if (scout == TAURUS.getIDScout()) {
         if (TAURUS.isForward())
             return;
-        Processor.start(&TAURUS_STATION);            
+        Processor.start(&TAURUS_STATION);
         return;
     }
 }
@@ -574,7 +574,7 @@ void onRFID_12(bool enter, word scout) {
 void onRFID_13(bool enter, word scout) {
     if (!enter)
         return;
-    
+
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
@@ -590,7 +590,7 @@ void onRFID_14(bool enter, word scout) {
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
-            
+
         Processor.start(&MOGUL_SQUEAL_OFF);
         return;
     }
@@ -604,7 +604,7 @@ void onRFID_14(bool enter, word scout) {
 void onRFID_15(bool enter, word scout) {
     if (!enter)
         return;
-    
+
     if (scout == MOGUL.getIDScout()) {
         if (!MOGUL.isForward())
             return;
@@ -619,4 +619,3 @@ void onRFID_15(bool enter, word scout) {
         return;
     }
 }
-
